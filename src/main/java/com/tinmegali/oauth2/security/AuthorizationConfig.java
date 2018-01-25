@@ -30,18 +30,21 @@ import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFacto
 
 @Configuration
 @EnableAuthorizationServer
-public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter
+{
 
     private Logger logger = Logger.getLogger(AuthorizationConfig.class);
 
     private int accessTokenValiditySeconds = 10000;
+
     private int refreshTokenValiditySeconds = 30000;
 
     @Value("${security.oauth2.resource.id}")
     private String resourceId;
 
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService()
+    {
         return new AccountService();
     }
 
@@ -49,62 +52,46 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
     private AuthenticationManager authenticationManager;
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints
-                .authenticationManager(this.authenticationManager)
-                .tokenServices(tokenServices())
-                .tokenStore(tokenStore())
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception
+    {
+        endpoints.authenticationManager(this.authenticationManager).tokenServices(tokenServices()).tokenStore(tokenStore())
                 .accessTokenConverter(accessTokenConverter());
     }
 
-
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception
+    {
 
         oauthServer
                 // we're allowing access to the token only for clients with 'ROLE_TRUSTED_CLIENT' authority
-                .tokenKeyAccess("hasAuthority('ROLE_TRUSTED_CLIENT')")
-                .checkTokenAccess("hasAuthority('ROLE_TRUSTED_CLIENT')");
+                .tokenKeyAccess("hasAuthority('ROLE_TRUSTED_CLIENT')").checkTokenAccess("hasAuthority('ROLE_TRUSTED_CLIENT')");
 
     }
 
     @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients
-                .inMemory()
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception
+    {
+        clients.inMemory()
 
-                .withClient("trusted-app")
-                    .authorizedGrantTypes("client_credentials", "password", "refresh_token")
-                    .authorities(Role.ROLE_TRUSTED_CLIENT.toString())
-                    .scopes("read", "write")
-                    .resourceIds(resourceId)
-                    .accessTokenValiditySeconds(10)
-                    .refreshTokenValiditySeconds(30000)
-                    .secret("secret")
-                .and()
-                .withClient("register-app")
-                    .authorizedGrantTypes("client_credentials")
-                    .authorities(Role.ROLE_REGISTER.toString())
-                    .scopes("registerUser")
-                    .accessTokenValiditySeconds(10)
-                    .refreshTokenValiditySeconds(10)
-                    .resourceIds(resourceId)
-                    .secret("secret");
+                .withClient("trusted-app").authorizedGrantTypes("client_credentials", "password", "refresh_token")
+                .authorities(Role.ROLE_TRUSTED_CLIENT.toString()).scopes("read", "write").resourceIds(resourceId).accessTokenValiditySeconds(10)
+                .refreshTokenValiditySeconds(30000).secret("secret").and().withClient("register-app").authorizedGrantTypes("client_credentials")
+                .authorities(Role.ROLE_REGISTER.toString()).scopes("registerUser").accessTokenValiditySeconds(10).refreshTokenValiditySeconds(10)
+                .resourceIds(resourceId).secret("secret");
     }
 
     @Bean
-    public TokenStore tokenStore() {
+    public TokenStore tokenStore()
+    {
         return new JwtTokenStore(accessTokenConverter());
 
     }
 
     @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
+    public JwtAccessTokenConverter accessTokenConverter()
+    {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        KeyStoreKeyFactory keyStoreKeyFactory =
-                new KeyStoreKeyFactory(
-                        new ClassPathResource("mykeys.jks"),
-                        "mypass".toCharArray());
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("mykeys.jks"), "mypass".toCharArray());
         converter.setKeyPair(keyStoreKeyFactory.getKeyPair("mykeys"));
         return converter;
     }
@@ -114,7 +101,8 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
     @Bean
     @Primary
-    public DefaultTokenServices tokenServices() {
+    public DefaultTokenServices tokenServices()
+    {
         MyTokenService tokenService = new MyTokenService(blackListService);
         tokenService.setTokenStore(tokenStore());
         tokenService.setSupportRefreshToken(true);
@@ -122,49 +110,51 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
         return tokenService;
     }
 
-
-    static class MyTokenService extends DefaultTokenServices {
+    static class MyTokenService extends DefaultTokenServices
+    {
         Logger logger = Logger.getLogger(MyTokenService.class);
 
         private TokenBlackListService blackListService;
 
-        public MyTokenService(TokenBlackListService blackListService) {
+        public MyTokenService(TokenBlackListService blackListService)
+        {
             this.blackListService = blackListService;
         }
 
         @Override
-        public OAuth2AccessToken readAccessToken(String accessToken) {
+        public OAuth2AccessToken readAccessToken(String accessToken)
+        {
             return super.readAccessToken(accessToken);
         }
 
-
-
         @Override
-        public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
+        public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException
+        {
             OAuth2AccessToken token = super.createAccessToken(authentication);
             Account account = (Account) authentication.getPrincipal();
             String jti = (String) token.getAdditionalInformation().get("jti");
 
-            blackListService.addToEnabledList(
-                    account.getId(),
-                    jti,
-                    token.getExpiration().getTime() );
+            blackListService.addToEnabledList(account.getId(), jti, token.getExpiration().getTime());
             return token;
         }
 
         @Override
-        public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest tokenRequest) throws AuthenticationException {
+        public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest tokenRequest) throws AuthenticationException
+        {
             logger.info("refresh token:" + refreshTokenValue);
             String jti = tokenRequest.getRequestParameters().get("jti");
-            try {
-                if ( jti != null )
-                        if ( blackListService.isBlackListed(jti) ) return null;
-
+            try
+            {
+                if (jti != null)
+                    if (blackListService.isBlackListed(jti))
+                        return null;
 
                 OAuth2AccessToken token = super.refreshAccessToken(refreshTokenValue, tokenRequest);
                 blackListService.addToBlackList(jti);
                 return token;
-            } catch (TokenBlackListService.TokenNotFoundException e) {
+            }
+            catch (TokenBlackListService.TokenNotFoundException e)
+            {
                 e.printStackTrace();
                 return null;
             }

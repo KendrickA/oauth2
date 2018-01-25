@@ -12,24 +12,33 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-public class Account implements UserDetails {
+public class Account implements UserDetails
+{
 
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
+
     @Column(unique = true)
     private String username;
+
     @JsonIgnore
     private String password;
+
     private String firstName;
+
     private String lastName;
+
     private String email;
+
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     private List<Role> roles;
+
     private boolean accountNonExpired, accountNonLocked, credentialsNonExpired, enabled;
 
-    public Account() {
+    public Account()
+    {
         this.accountNonExpired = true;
         this.accountNonLocked = true;
         this.credentialsNonExpired = true;
@@ -37,92 +46,141 @@ public class Account implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
+    public boolean isAccountNonExpired()
+    {
         return accountNonExpired;
     }
+
     @Override
-    public boolean isAccountNonLocked() {
+    public boolean isAccountNonLocked()
+    {
         return accountNonLocked;
     }
+
     @Override
-    public boolean isCredentialsNonExpired() {
+    public boolean isCredentialsNonExpired()
+    {
         return credentialsNonExpired;
     }
+
     @Override
-    public boolean isEnabled() {
+    public boolean isEnabled()
+    {
         return enabled;
     }
-    public void grantAuthority(Role authority) {
-        if ( roles == null ) roles = new ArrayList<>();
+
+    public void grantAuthority(Role authority)
+    {
+        if (roles == null)
+            roles = new ArrayList<>();
         roles.add(authority);
     }
+
     @Override
-    public List<GrantedAuthority> getAuthorities(){
+    public List<GrantedAuthority> getAuthorities()
+    {
         List<GrantedAuthority> authorities = new ArrayList<>();
         roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.toString())));
         return authorities;
     }
-    public List<Role> getRoles() {
+
+    public List<Role> getRoles()
+    {
         return roles;
     }
-    public void setRoles(List<Role> roles) {
+
+    public void setRoles(List<Role> roles)
+    {
         this.roles = roles;
     }
+
     @JsonIgnore
-    public String getPassword() {
+    public String getPassword()
+    {
         return password;
     }
+
     @JsonProperty
-    public void setPassword(String password) {
+    public void setPassword(String password)
+    {
         this.password = password;
     }
-    public Long getId() {
+
+    public Long getId()
+    {
         return id;
     }
-    public void setId(Long id) {
+
+    public void setId(Long id)
+    {
         this.id = id;
     }
-    public void setAccountNonExpired(boolean accountNonExpired) {
+
+    public void setAccountNonExpired(boolean accountNonExpired)
+    {
         this.accountNonExpired = accountNonExpired;
     }
-    public void setAccountNonLocked(boolean accountNonLocked) {
+
+    public void setAccountNonLocked(boolean accountNonLocked)
+    {
         this.accountNonLocked = accountNonLocked;
     }
-    public void setCredentialsNonExpired(boolean credentialsNonExpired) {
+
+    public void setCredentialsNonExpired(boolean credentialsNonExpired)
+    {
         this.credentialsNonExpired = credentialsNonExpired;
     }
-    public void setEnabled(boolean enabled) {
+
+    public void setEnabled(boolean enabled)
+    {
         this.enabled = enabled;
     }
-    public String getUsername() {
+
+    public String getUsername()
+    {
         return username;
     }
-    public void setUsername(String username) {
+
+    public void setUsername(String username)
+    {
         this.username = username;
     }
-    public String getFirstName() {
+
+    public String getFirstName()
+    {
         return firstName;
     }
-    public void setFirstName(String firstName) {
+
+    public void setFirstName(String firstName)
+    {
         this.firstName = firstName;
     }
-    public String getLastName() {
+
+    public String getLastName()
+    {
         return lastName;
     }
-    public void setLastName(String lastName) {
+
+    public void setLastName(String lastName)
+    {
         this.lastName = lastName;
     }
-    public String getEmail() {
+
+    public String getEmail()
+    {
         return email;
     }
-    public void setEmail(String email) {
+
+    public void setEmail(String email)
+    {
         this.email = email;
     }
 
     @Override
-    public String toString() {
-        String toStr = String.format("Account[%s]",id);
-        toStr += String.format("\n username[%s]",username);
+    public String toString()
+    {
+        String toStr = String.format("Account[%s]", id);
+        toStr += String.format("\n username[%s]", username);
         toStr += String.format("\n | firstName[%s]", firstName);
         toStr += String.format("\n | lastName[%s]", lastName);
         toStr += String.format("\n | email[%s]", email);

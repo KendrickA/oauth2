@@ -14,32 +14,33 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 
 @RestController
-public class AccountController {
+public class AccountController
+{
 
     @Autowired
     AccountService accountService;
 
     @PreAuthorize("hasRole('REGISTER')")
     @PostMapping("/api/account/register")
-    public ResponseEntity<Account> registerAccount(@RequestBody Account account) {
+    public ResponseEntity<Account> registerAccount(@RequestBody Account account)
+    {
         account = accountService.registerUser(account);
         return new ResponseEntity<>(account, HttpStatus.CREATED);
     }
 
     @PreAuthorize("isFullyAuthenticated()")
     @DeleteMapping("/api/account/remove")
-    public ResponseEntity<GeneralController.RestMsg> removeAccount(Principal principal){
+    public ResponseEntity<GeneralController.RestMsg> removeAccount(Principal principal)
+    {
         boolean isDeleted = accountService.removeAuthenticatedAccount();
-        if ( isDeleted ) {
-            return new ResponseEntity<>(
-                    new GeneralController.RestMsg(String.format("[%s] removed.", principal.getName())),
-                    HttpStatus.OK
-            );
-        } else {
+        if (isDeleted)
+        {
+            return new ResponseEntity<>(new GeneralController.RestMsg(String.format("[%s] removed.", principal.getName())), HttpStatus.OK);
+        }
+        else
+        {
             return new ResponseEntity<GeneralController.RestMsg>(
-                    new GeneralController.RestMsg(String.format("An error ocurred while delete [%s]", principal.getName())),
-                    HttpStatus.BAD_REQUEST
-            );
+                    new GeneralController.RestMsg(String.format("An error ocurred while delete [%s]", principal.getName())), HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -11,31 +11,36 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TokenBlackListService {
+public class TokenBlackListService
+{
 
     @Autowired
     TokenBlackListRepo tokenBlackListRepo;
 
-    public Boolean isBlackListed( String jti ) throws TokenNotFoundException {
+    public Boolean isBlackListed(String jti) throws TokenNotFoundException
+    {
         Optional<TokenBlackList> token = tokenBlackListRepo.findByJti(jti);
-        if ( token.isPresent() ) {
+        if (token.isPresent())
+        {
             return token.get().isBlackListed();
-        } else {
+        }
+        else
+        {
             throw new TokenNotFoundException(jti);
         }
     }
 
     @Async
-    public void addToEnabledList(Long userId, String jti, Long expired ) {
+    public void addToEnabledList(Long userId, String jti, Long expired)
+    {
         // clean all black listed tokens for user
         List<TokenBlackList> list = tokenBlackListRepo.queryAllByUserIdAndIsBlackListedTrue(userId);
-        if (list != null && list.size() > 0) {
-            list.forEach(
-                    token -> {
-                        token.setBlackListed(true);
-                        tokenBlackListRepo.save(token);
-                    }
-            );
+        if (list != null && list.size() > 0)
+        {
+            list.forEach(token -> {
+                token.setBlackListed(true);
+                tokenBlackListRepo.save(token);
+            });
         }
         // Add new token white listed
         TokenBlackList tokenBlackList = new TokenBlackList(userId, jti, expired);
@@ -45,21 +50,29 @@ public class TokenBlackListService {
     }
 
     @Async
-    public void addToBlackList(String jti ) throws TokenNotFoundException {
+    public void addToBlackList(String jti) throws TokenNotFoundException
+    {
         Optional<TokenBlackList> tokenBlackList = tokenBlackListRepo.findByJti(jti);
-        if ( tokenBlackList.isPresent() ) {
+        if (tokenBlackList.isPresent())
+        {
             tokenBlackList.get().setBlackListed(true);
             tokenBlackListRepo.save(tokenBlackList.get());
-        } else throw new TokenNotFoundException(jti);
+        }
+        else
+            throw new TokenNotFoundException(jti);
     }
 
-    public static class TokenNotFoundException extends Exception {
+    public static class TokenNotFoundException extends Exception
+    {
         public String jti;
+
         public String message;
-        public TokenNotFoundException(String jti) {
+
+        public TokenNotFoundException(String jti)
+        {
             super();
             this.jti = jti;
-            message = String.format("Token with jti[%s] not found.",jti);
+            message = String.format("Token with jti[%s] not found.", jti);
         }
     }
 }

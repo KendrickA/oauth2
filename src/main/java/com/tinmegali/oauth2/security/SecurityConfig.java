@@ -15,9 +15,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@EnableWebSecurity( debug = true )
+@EnableWebSecurity(debug = true)
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig extends WebSecurityConfigurerAdapter
+{
 
     @Autowired
     public UserDetailsService userDetailsService;
@@ -26,17 +27,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider()
+    {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder( passwordEncoder );
-        provider.setUserDetailsService( userDetailsService() );
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(userDetailsService());
         return provider;
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .formLogin().disable() // disable form authentication
+    protected void configure(HttpSecurity http) throws Exception
+    {
+        http.formLogin().disable() // disable form authentication
                 .anonymous().disable() // disable anonymous user
                 .httpBasic().and()
                 // restricting access to authenticated users
@@ -44,15 +46,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder);
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception
+    {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
     }
 
     @Override
     @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
+    public AuthenticationManager authenticationManagerBean() throws Exception
+    {
         // provides the default AuthenticationManager as a Bean
         return super.authenticationManagerBean();
     }
